@@ -156,60 +156,17 @@ namespace Lab5
                 switch (key)
                 {
                     case '1':
-                        Console.WriteLine("\nName: ");
-                        var name = Console.ReadLine();
-                        expression += "Payers (Name, Surname, [Payer Type], Address, Income) VALUES ('" + name + "', '";
-                        Console.WriteLine("\nSurname (if its company, enter '0'): ");
-                        string surname = Console.ReadLine();
-                        if(surname == "0")
-                        {
-                            surname = " ";
-                        }
-                        expression += surname + "', '";
-                        var payerFlag = true;
-                        while (payerFlag)
-                        {
-                            Console.WriteLine("\nPayer Type:\n1. Private entrepreneur\n2. An individual\n3. Legal entity");
-                            var payerKey = Console.ReadKey().KeyChar;
-                            switch (payerKey)
-                            {
-                                case '1':
-                                    expression += "private entrepreneur', '";
-                                    payerFlag = false;
-                                    break;
-                                case '2':
-                                    expression += "an individual', '";
-                                    payerFlag = false;
-                                    break;
-                                case '3':
-                                    expression += "legal entity', '";
-                                    payerFlag = false;
-                                    break;
-                                default:
-                                    Console.WriteLine("Incorrect input");
-                                    Console.ReadKey();
-                                    Console.Clear();
-                                    break;
-                            }
-                        }
-                        Console.WriteLine("\nAddress: ");
-                        var address = Console.ReadLine();
-                        expression += address + "', ";
-                        Console.WriteLine("\nIncome: ");
-                        var income = Double.Parse(Console.ReadLine());
-                        expression += income.ToString() + ")";
-                        
+                        InsertCase1(expression);
                         Console.ReadKey();
                         flag = false;
                         break;
                     case '2':
-                        expression += "Taxes (Name, [Law Document], Percentage) VALUES (";
-                        
+                        //expression += "Taxes (Name, [Law Document], Percentage) VALUES (";
                         Console.ReadKey();
                         flag = false;
                         break;
                     case '3':
-                        expression += "Register (PayerId, TaxId, Amount) VALUES (";
+                        
                         
                         Console.ReadKey();
                         flag = false;
@@ -224,6 +181,74 @@ namespace Lab5
                         break;
                 }
             }
+        }
+        static void InsertCase3(string expression)
+        {
+            expression += "Register (PayerId, TaxId, Amount) VALUES (";
+            Console.WriteLine("PayerId: ");
+            var payer = Console.Read();
+            Console.WriteLine("TaxId:");
+            var tax = Console.Read();
+            expression += payer.ToString() + ", " + tax.ToString() + ", ";
+
+        }
+        static void InsertCase2(string expression)
+        {
+            expression += "Taxes (Name, [Law Document], Percentage) VALUES ('";
+            Console.WriteLine("\nName: ");
+            var name = Console.ReadLine();
+            expression += name + "', '";
+            Console.WriteLine("\nLaw Document (Article 'number' of the Tax Code): ");
+            var document = Console.ReadLine();
+            expression += document + "', ";
+            Console.WriteLine("\nPercentage: ");
+            var percentage = Console.Read();
+            expression += percentage.ToString() + ")";
+        }
+        static void InsertCase1(string expression)
+        {
+            Console.WriteLine("\nName: ");
+            var name = Console.ReadLine();
+            expression += "Payers (Name, Surname, [Payer Type], Address, Income) VALUES ('" + name + "', '";
+            Console.WriteLine("\nSurname (if its company, enter '0'): ");
+            string surname = Console.ReadLine();
+            if (surname == "0")
+            {
+                surname = " ";
+            }
+            expression += surname + "', '";
+            var payerFlag = true;
+            while (payerFlag)
+            {
+                Console.WriteLine("\nPayer Type:\n1. Private entrepreneur\n2. An individual\n3. Legal entity");
+                var payerKey = Console.ReadKey().KeyChar;
+                switch (payerKey)
+                {
+                    case '1':
+                        expression += "private entrepreneur', '";
+                        payerFlag = false;
+                        break;
+                    case '2':
+                        expression += "an individual', '";
+                        payerFlag = false;
+                        break;
+                    case '3':
+                        expression += "legal entity', '";
+                        payerFlag = false;
+                        break;
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+            }
+            Console.WriteLine("\nAddress: ");
+            var address = Console.ReadLine();
+            expression += address + "', ";
+            Console.WriteLine("\nIncome: ");
+            var income = Double.Parse(Console.ReadLine());
+            expression += income.ToString() + ")";
         }
     }
 }
