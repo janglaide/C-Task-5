@@ -34,7 +34,7 @@ namespace Lab5
                     connection.Open();
                     Console.WriteLine("Connection!");
 
-                    Console.WriteLine("\n\t\t\tMENU\n1. SELECT\n2. INSERT\n3. UPDATE\n4. DELETE\n5. Exit");
+                    Console.WriteLine("\n\t\t\tMENU\n1. SELECT\n2. INSERT\n3. UPDATE\n4. DELETE\n5. Queries\n6. Exit");
                     var key = Console.ReadKey().KeyChar;
                     Console.Clear();
                     switch (key)
@@ -43,13 +43,18 @@ namespace Lab5
                             Select(connection);
                             break;
                         case '2':
-
+                            Insert(connection);
                             break;
                         case '3':
+                            Update(connection);
                             break;
                         case '4':
+                            Delete(connection);
                             break;
                         case '5':
+                            Queries(connection);
+                            break;
+                        case '6':
                             connection.Close();
                             Console.WriteLine("Connection closed...");
                             Environment.Exit(0);
@@ -67,6 +72,358 @@ namespace Lab5
             }
             
         }
+
+        static void Queries(SqlConnection connection)
+        {
+            var flag = true;
+            while (flag)
+            {
+                Console.WriteLine("1. Order by amount in register\n2. Joined tables\n3. Private entrepreneurs\n" +
+                    "4. Individuals\n5. Legal entities\n6. Return to main menu\n");
+                var key = Console.ReadKey().KeyChar;
+                DataSet ds = new DataSet();
+                SqlDataAdapter adapter;
+                string sql;
+                switch (key)
+                {
+                    case '1':
+                        sql = "SELECT * FROM Register Order By Amount";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '2':
+                        sql = "SELECT DISTINCT TaxRegister.dbo.Payers.Name, TaxRegister.dbo.Payers.Surname, TaxRegister.dbo.Payers.Income, ";
+                        sql += "TaxRegister.dbo.Taxes.Percentage, TaxRegister.dbo.Register.Amount FROM TaxRegister.dbo.Payers ";
+                        sql += "JOIN TaxRegister.dbo.Register ON TaxRegister.dbo.Payers.Id = TaxRegister.dbo.Register.PayerId ";
+                        sql += "JOIN TaxRegister.dbo.Taxes ON TaxRegister.dbo.Register.TaxId = TaxRegister.dbo.Taxes.Id ";
+                        sql += "WHERE TaxRegister.dbo.Payers.Id = TaxRegister.dbo.Register.PayerId AND TaxRegister.dbo.Register.TaxId = TaxRegister.dbo.Taxes.Id ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '3':
+                        sql = "SELECT TaxRegister.dbo.Payers.Name, TaxRegister.dbo.Payers.Surname, TaxRegister.dbo.Payers.[Payer Type], ";
+                        sql += "TaxRegister.dbo.Taxes.Name FROM TaxRegister.dbo.Payers ";
+                        sql += "JOIN TaxRegister.dbo.Register ON TaxRegister.dbo.Payers.Id = TaxRegister.dbo.Register.PayerId ";
+                        sql += "JOIN TaxRegister.dbo.Taxes ON TaxRegister.dbo.Register.TaxId = TaxRegister.dbo.Taxes.Id ";
+                        sql += "WHERE TaxRegister.dbo.Payers.[Payer Type] = 'private entrepreneur' ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '4':
+                        sql = "SELECT TaxRegister.dbo.Payers.Name, TaxRegister.dbo.Payers.Surname, TaxRegister.dbo.Payers.[Payer Type], ";
+                        sql += "TaxRegister.dbo.Taxes.Name FROM TaxRegister.dbo.Payers ";
+                        sql += "JOIN TaxRegister.dbo.Register ON TaxRegister.dbo.Payers.Id = TaxRegister.dbo.Register.PayerId ";
+                        sql += "JOIN TaxRegister.dbo.Taxes ON TaxRegister.dbo.Register.TaxId = TaxRegister.dbo.Taxes.Id ";
+                        sql += "WHERE TaxRegister.dbo.Payers.[Payer Type] = 'an individual' ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '5':
+                        sql = "SELECT TaxRegister.dbo.Payers.Name, TaxRegister.dbo.Payers.Surname, TaxRegister.dbo.Payers.[Payer Type], ";
+                        sql += "TaxRegister.dbo.Taxes.Name FROM TaxRegister.dbo.Payers ";
+                        sql += "JOIN TaxRegister.dbo.Register ON TaxRegister.dbo.Payers.Id = TaxRegister.dbo.Register.PayerId ";
+                        sql += "JOIN TaxRegister.dbo.Taxes ON TaxRegister.dbo.Register.TaxId = TaxRegister.dbo.Taxes.Id ";
+                        sql += "WHERE TaxRegister.dbo.Payers.[Payer Type] = 'legal entity' ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '6':
+                        flag = false;
+                        break;
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+        static void Delete(SqlConnection connection)
+        {
+            var flag = true;
+            var expression = "DELETE FROM Payers WHERE Id = ";
+            while (flag)
+            {
+                Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
+                var key = Console.ReadKey().KeyChar;
+                Console.WriteLine();
+
+                string selectExpression;
+                SqlDataAdapter adapter;
+                DataSet ds = new DataSet();
+                switch (key)
+                {
+                    case '1':
+
+                        selectExpression = "SELECT * FROM Payers";
+
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        expression = DeleteCase(expression);
+
+                        flag = false;
+                        break;
+                    case '2':
+
+                        selectExpression = "SELECT * FROM Taxes";
+
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        expression = DeleteCase(expression);
+                        flag = false;
+                        break;
+                    case '3':
+
+                        selectExpression = "SELECT * FROM Register";
+
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        expression = DeleteCase(expression);
+                        flag = false;
+                        break;
+                    case '4':
+                        flag = false;
+                        break;
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+            }
+            SqlCommand command = new SqlCommand(expression, connection);
+            var number = command.ExecuteNonQuery();
+            Console.WriteLine("The row was deleted");
+            Console.ReadKey();
+        }
+
+        static string DeleteCase(string expression)
+        {
+            Console.WriteLine("\nEnter Row Id to Delete:");
+            var id = Console.ReadLine();
+            expression += id;
+            return expression;
+        }
+        static void Update(SqlConnection connection)
+        {
+            var flag = true;
+            var expression = "";
+            while (flag)
+            {
+                Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
+                var key = Console.ReadKey().KeyChar;
+                Console.WriteLine();
+
+                string selectExpression;
+                SqlDataAdapter adapter;
+                DataSet ds = new DataSet();
+                switch (key)
+                {
+                    case '1':
+                        expression = "UPDATE Payers SET ";
+
+                        selectExpression = "SELECT * FROM Payers";
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        
+                        expression = UpdateCase1(expression);
+
+                        flag = false;
+                        break;
+                    case '2':
+                        expression = "UPDATE Taxes SET ";
+
+                        selectExpression = "SELECT * FROM Taxes";
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        expression = UpdateCase2(expression);
+                        flag = false;
+                        break;
+                    case '3':
+                        expression = "UPDATE Register SET ";
+
+                        selectExpression = "SELECT * FROM Register";
+                        adapter = new SqlDataAdapter(selectExpression, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+
+                        expression =  UpdateCase3(expression);
+                        flag = false;
+                        break;
+                    case '4':
+                        flag = false;
+                        break;
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+            }
+            SqlCommand command = new SqlCommand(expression, connection);
+            var number = command.ExecuteNonQuery();
+            Console.WriteLine("The row was updated");
+            Console.ReadKey();
+        }
+
+        static string UpdateCase3(string expression)
+        {
+            Console.WriteLine("\nEnter Row Id to Update:");
+            var id = Console.ReadLine();
+            var flag = true;
+            while (flag)
+            {
+                Console.WriteLine("\n1. PayerId\n2. TaxId\n3. Amount\n4. Return back to main menu");
+                var key = Console.ReadKey().KeyChar;
+                switch (key)
+                {
+                    case '1':
+                        Console.WriteLine("\nNew PayerId: ");
+                        var newPayerId = Console.ReadLine();
+                        expression += "PayerId = " + newPayerId + " WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '2':
+                        Console.WriteLine("\nNew TaxId: ");
+                        var newTaxId = Console.ReadLine();
+                        expression += "TaxId = " + newTaxId + " WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '3':
+                        Console.WriteLine("\nNew Amount: ");
+                        var newAmount = Console.ReadLine();
+                        expression += "Amount = " + newAmount + " WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '4':
+                        flag = false;
+                        break;
+
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+            return expression;
+        }
+        static string UpdateCase2(string expression)
+        {
+            Console.WriteLine("\nEnter Row Id to Update:");
+            var id = Console.ReadLine();
+            var flag = true;
+            while (flag)
+            {
+                Console.WriteLine("\n1. Name\n2. Law Document\n3. Percentage\n4. Return back to main menu");
+                var key = Console.ReadKey().KeyChar;
+                switch (key)
+                {
+                    case '1':
+                        Console.WriteLine("\nNew name: ");
+                        var newName = Console.ReadLine();
+                        expression += "Name = '" + newName + "' WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '2':
+                        Console.WriteLine("\nNew law document: ");
+                        var newLawDocument = Console.ReadLine();
+                        expression += "[Law Document] = '" + newLawDocument + "' WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '3':
+                        Console.WriteLine("\nNew percentage: ");
+                        var newPercentage = Console.ReadLine();
+                        expression += "Percentage = " + newPercentage + " WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '4':
+                        flag = false;
+                        break;
+                    
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+            return expression;
+        }
+        static string UpdateCase1(string expression)
+        {
+            Console.WriteLine("\nEnter Row Id to Update:");
+            var id = Console.ReadLine();
+            var flag = true;
+            while (flag)
+            {
+                Console.WriteLine("\n1. Name\n2. Surname\n3. Payer Type\n4. Address\n5. Income\n6. Return back to main menu");
+                var key = Console.ReadKey().KeyChar;
+                switch (key)
+                {
+                    case '1':
+                        Console.WriteLine("\nNew name: ");
+                        string newName = Console.ReadLine();
+                        expression += "Name = '" + newName + "' WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '2':
+                        Console.WriteLine("\nNew surname: ");
+                        var newSurname = Console.ReadLine();
+                        expression += "Surname = '" + newSurname + "' WHERE Id = " + id;
+                        flag = false;
+                        break;
+                    case '3':
+                        Console.WriteLine("\nNew payer type: ");
+                        var newPayerType = Console.ReadLine();
+                        expression += "[Payer Type] = '" + newPayerType + "' WHERE Id = " + id.ToString();
+                        flag = false;
+                        break;
+                    case '4':
+                        Console.WriteLine("\nNew Address: ");
+                        var newAddress = Console.ReadLine();
+                        expression += "Address = '" + newAddress + "' WHERE Id = " + id.ToString();
+                        flag = false;
+                        break;
+                    case '5':
+                        Console.WriteLine("\nNew Income: ");
+                        var newIncome = Double.Parse(Console.ReadLine());
+                        expression += "Income = " + newIncome.ToString() + " WHERE Id = " + id.ToString();
+                        flag = false;
+                        break;
+                    case '6':
+                        flag = false;
+                        break;
+                    default:
+                        Console.WriteLine("Incorrect input");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+            return expression;
+        }
         static void Select(SqlConnection connection)
         {
             var flag = true;
@@ -75,13 +432,13 @@ namespace Lab5
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
                 var key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
-                var expression = "SELECT * FROM ";
+                string expression;
                 SqlDataAdapter adapter;
                 DataSet ds = new DataSet();
                 switch (key)
                 {
                     case '1':
-                        expression += "Payers";
+                        expression = "SELECT * FROM Payers";
                         adapter = new SqlDataAdapter(expression, connection);
                         adapter.Fill(ds);
                         TablesOut(ds);
@@ -89,7 +446,7 @@ namespace Lab5
                         flag = false;
                         break;
                     case '2':
-                        expression += "Taxes";
+                        expression = "SELECT * FROM Taxes";
                         adapter = new SqlDataAdapter(expression, connection);
                         adapter.Fill(ds);
                         TablesOut(ds);
@@ -97,7 +454,7 @@ namespace Lab5
                         flag = false;
                         break;
                     case '3':
-                        expression += "Register";
+                        expression = "SELECT * FROM Register";
                         adapter = new SqlDataAdapter(expression, connection);
                         adapter.Fill(ds);
                         TablesOut(ds);
@@ -147,27 +504,26 @@ namespace Lab5
         static void Insert(SqlConnection connection)
         {
             var flag = true;
+            var expression = "INSERT INTO ";
             while (flag)
             {
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
                 var key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
-                var expression = "INSERT INTO ";
                 switch (key)
                 {
                     case '1':
-                        InsertCase1(expression);
+                        expression = InsertCase1(expression);
                         Console.ReadKey();
                         flag = false;
                         break;
                     case '2':
-                        //expression += "Taxes (Name, [Law Document], Percentage) VALUES (";
+                        expression = InsertCase2(expression);
                         Console.ReadKey();
                         flag = false;
                         break;
                     case '3':
-                        
-                        
+                        expression = InsertCase3(expression, connection);
                         Console.ReadKey();
                         flag = false;
                         break;
@@ -181,18 +537,51 @@ namespace Lab5
                         break;
                 }
             }
+            SqlCommand command = new SqlCommand(expression, connection);
+            var number = command.ExecuteNonQuery();
+            Console.WriteLine("Added " + number + "row");
+            Console.ReadKey();
         }
-        static void InsertCase3(string expression)
+        static string InsertCase3(string expression, SqlConnection connection)
         {
             expression += "Register (PayerId, TaxId, Amount) VALUES (";
             Console.WriteLine("PayerId: ");
-            var payer = Console.Read();
+            var payer = Console.ReadLine();
             Console.WriteLine("TaxId:");
-            var tax = Console.Read();
-            expression += payer.ToString() + ", " + tax.ToString() + ", ";
+            var tax = Console.ReadLine();
 
+            var amount = CountAmount(payer, tax, connection);
+
+            expression += payer.ToString() + ", " + tax.ToString() + ", " + amount.ToString() + ")";
+            return expression;
         }
-        static void InsertCase2(string expression)
+
+        static double CountAmount(string payer, string tax, SqlConnection connection)
+        {
+
+            double result;
+            var sql1 = "SELECT Income FROM Payers WHERE Id = " + payer;
+            var sql2 = "SELECT Percentage FROM Taxes WHERE Id = " + tax;
+
+            SqlDataAdapter adapter1 = new SqlDataAdapter(sql1, connection);
+            SqlDataAdapter adapter2 = new SqlDataAdapter(sql2, connection);
+
+            DataSet ds1 = new DataSet();
+            DataSet ds2 = new DataSet();
+
+            adapter1.Fill(ds1);
+            adapter2.Fill(ds2);
+
+            var percent = ds2.Tables[0].Rows[0].ItemArray[0];
+            var income = ds1.Tables[0].Rows[0].ItemArray[0];
+            var intPercent = Convert.ToDouble(percent);
+            var intIncome = Convert.ToDouble(income);
+
+            result = intIncome * (intPercent / 100);
+
+            return result;
+        }
+        static string InsertCase2(string expression)
         {
             expression += "Taxes (Name, [Law Document], Percentage) VALUES ('";
             Console.WriteLine("\nName: ");
@@ -204,8 +593,9 @@ namespace Lab5
             Console.WriteLine("\nPercentage: ");
             var percentage = Console.Read();
             expression += percentage.ToString() + ")";
+            return expression;
         }
-        static void InsertCase1(string expression)
+        static string InsertCase1(string expression)
         {
             Console.WriteLine("\nName: ");
             var name = Console.ReadLine();
@@ -249,6 +639,7 @@ namespace Lab5
             Console.WriteLine("\nIncome: ");
             var income = Double.Parse(Console.ReadLine());
             expression += income.ToString() + ")";
+            return expression;
         }
     }
 }
