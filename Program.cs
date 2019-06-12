@@ -76,11 +76,13 @@ namespace Lab5
         static void Queries(SqlConnection connection)
         {
             var flag = true;
+            var key = 'c';
             while (flag)
             {
                 Console.WriteLine("1. Order by amount in register\n2. Joined tables\n3. Private entrepreneurs\n" +
-                    "4. Individuals\n5. Legal entities\n6. Return to main menu\n");
-                var key = Console.ReadKey().KeyChar;
+                    "4. Individuals\n5. Legal entities\n6. Maximum income\n7. Law Documents and Amounts for them" +
+                    "\n8. Return to main menu\n");
+                key = Console.ReadKey().KeyChar;
                 DataSet ds = new DataSet();
                 SqlDataAdapter adapter;
                 string sql;
@@ -146,6 +148,24 @@ namespace Lab5
                         flag = false;
                         break;
                     case '6':
+                        sql = "SELECT MAX(TaxRegister.dbo.Payers.Income) FROM TaxRegister.dbo.Payers; ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '7':
+                        sql = "SELECT TaxRegister.dbo.Taxes.[Law Document], TaxRegister.dbo.Taxes.Percentage, TaxRegister.dbo.Register.Amount ";
+                        sql += "FROM TaxRegister.dbo.Taxes JOIN TaxRegister.dbo.Register ON TaxRegister.dbo.Taxes.Id = TaxRegister.dbo.Register.TaxId ";
+                        sql += "WHERE TaxRegister.dbo.Taxes.Id = TaxRegister.dbo.Register.TaxId ORDER BY Amount ";
+                        adapter = new SqlDataAdapter(sql, connection);
+                        adapter.Fill(ds);
+                        TablesOut(ds);
+                        Console.ReadKey();
+                        flag = false;
+                        break;
+                    case '8':
                         flag = false;
                         break;
                     default:
@@ -159,12 +179,14 @@ namespace Lab5
         {
             var flag = true;
             var expression = "DELETE FROM Payers WHERE Id = ";
+            var key = 'c';
+            var foreignDelete = "";
             while (flag)
             {
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
-                var key = Console.ReadKey().KeyChar;
+                key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
-
+                string id;
                 string selectExpression;
                 SqlDataAdapter adapter;
                 DataSet ds = new DataSet();
@@ -178,8 +200,11 @@ namespace Lab5
                         adapter.Fill(ds);
                         TablesOut(ds);
 
-                        expression = DeleteCase(expression);
+                        Console.WriteLine("\nEnter Row Id to Delete:");
+                        id = Console.ReadLine();
+                        expression += id;
 
+                        foreignDelete = "DELETE FROM Register WHERE PayerId = " + id;
                         flag = false;
                         break;
                     case '2':
@@ -189,7 +214,12 @@ namespace Lab5
                         adapter = new SqlDataAdapter(selectExpression, connection);
                         adapter.Fill(ds);
                         TablesOut(ds);
-                        expression = DeleteCase(expression);
+
+                        Console.WriteLine("\nEnter Row Id to Delete:");
+                        id = Console.ReadLine();
+                        expression += id;
+
+                        foreignDelete = "DELETE FROM Register WHERE TaxId = " + id;
                         flag = false;
                         break;
                     case '3':
@@ -199,7 +229,11 @@ namespace Lab5
                         adapter = new SqlDataAdapter(selectExpression, connection);
                         adapter.Fill(ds);
                         TablesOut(ds);
-                        expression = DeleteCase(expression);
+
+                        Console.WriteLine("\nEnter Row Id to Delete:");
+                        id = Console.ReadLine();
+                        expression += id;
+
                         flag = false;
                         break;
                     case '4':
@@ -213,26 +247,28 @@ namespace Lab5
                 }
             }
             SqlCommand command = new SqlCommand(expression, connection);
-            var number = command.ExecuteNonQuery();
-            Console.WriteLine("The row was deleted");
+            if (key != '4')
+            {
+                var number = command.ExecuteNonQuery();
+                Console.WriteLine("The row was deleted");
+            }
+            if(key == '1' || key == '2')
+            {
+                SqlCommand command2 = new SqlCommand(foreignDelete, connection);
+                var number2 = command2.ExecuteNonQuery();
+            }
             Console.ReadKey();
         }
 
-        static string DeleteCase(string expression)
-        {
-            Console.WriteLine("\nEnter Row Id to Delete:");
-            var id = Console.ReadLine();
-            expression += id;
-            return expression;
-        }
         static void Update(SqlConnection connection)
         {
             var flag = true;
             var expression = "";
+            var key = 'c';
             while (flag)
             {
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
-                var key = Console.ReadKey().KeyChar;
+                key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
 
                 string selectExpression;
@@ -285,8 +321,12 @@ namespace Lab5
                 }
             }
             SqlCommand command = new SqlCommand(expression, connection);
-            var number = command.ExecuteNonQuery();
-            Console.WriteLine("The row was updated");
+            if (key != '4')
+            {
+                var number = command.ExecuteNonQuery();
+                Console.WriteLine("The row was updated");
+            }
+
             Console.ReadKey();
         }
 
@@ -295,10 +335,11 @@ namespace Lab5
             Console.WriteLine("\nEnter Row Id to Update:");
             var id = Console.ReadLine();
             var flag = true;
+            var key = 'c';
             while (flag)
             {
-                Console.WriteLine("\n1. PayerId\n2. TaxId\n3. Amount\n4. Return back to main menu");
-                var key = Console.ReadKey().KeyChar;
+                Console.WriteLine("\n1. PayerId\n2. TaxId\n3. Amount\n");
+                key = Console.ReadKey().KeyChar;
                 switch (key)
                 {
                     case '1':
@@ -319,16 +360,13 @@ namespace Lab5
                         expression += "Amount = " + newAmount + " WHERE Id = " + id;
                         flag = false;
                         break;
-                    case '4':
-                        flag = false;
-                        break;
-
                     default:
                         Console.WriteLine("Incorrect input");
                         Console.ReadKey();
                         break;
                 }
             }
+
             return expression;
         }
         static string UpdateCase2(string expression)
@@ -338,7 +376,7 @@ namespace Lab5
             var flag = true;
             while (flag)
             {
-                Console.WriteLine("\n1. Name\n2. Law Document\n3. Percentage\n4. Return back to main menu");
+                Console.WriteLine("\n1. Name\n2. Law Document\n3. Percentage\n");
                 var key = Console.ReadKey().KeyChar;
                 switch (key)
                 {
@@ -360,10 +398,6 @@ namespace Lab5
                         expression += "Percentage = " + newPercentage + " WHERE Id = " + id;
                         flag = false;
                         break;
-                    case '4':
-                        flag = false;
-                        break;
-                    
                     default:
                         Console.WriteLine("Incorrect input");
                         Console.ReadKey();
@@ -379,7 +413,7 @@ namespace Lab5
             var flag = true;
             while (flag)
             {
-                Console.WriteLine("\n1. Name\n2. Surname\n3. Payer Type\n4. Address\n5. Income\n6. Return back to main menu");
+                Console.WriteLine("\n1. Name\n2. Surname\n3. Payer Type\n4. Address\n5. Income\n");
                 var key = Console.ReadKey().KeyChar;
                 switch (key)
                 {
@@ -413,9 +447,6 @@ namespace Lab5
                         expression += "Income = " + newIncome.ToString() + " WHERE Id = " + id.ToString();
                         flag = false;
                         break;
-                    case '6':
-                        flag = false;
-                        break;
                     default:
                         Console.WriteLine("Incorrect input");
                         Console.ReadKey();
@@ -427,10 +458,11 @@ namespace Lab5
         static void Select(SqlConnection connection)
         {
             var flag = true;
+            var key = 'c';
             while (flag)
             {
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
-                var key = Console.ReadKey().KeyChar;
+                key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
                 string expression;
                 SqlDataAdapter adapter;
@@ -479,6 +511,7 @@ namespace Lab5
             {
                 Console.WriteLine(dt.TableName); // название таблицы
                                                  // перебор всех столбцов
+
                 for(var i = 0; i < dt.Columns.Count; i++)
                 {
                     if(i == 0)
@@ -505,10 +538,11 @@ namespace Lab5
         {
             var flag = true;
             var expression = "INSERT INTO ";
+            var key = 'c';
             while (flag)
             {
                 Console.WriteLine("1. Payers\n2. Taxes\n3. Register (Payers to taxes)\n4. Return to main menu");
-                var key = Console.ReadKey().KeyChar;
+                key = Console.ReadKey().KeyChar;
                 Console.WriteLine();
                 switch (key)
                 {
@@ -538,8 +572,12 @@ namespace Lab5
                 }
             }
             SqlCommand command = new SqlCommand(expression, connection);
-            var number = command.ExecuteNonQuery();
-            Console.WriteLine("Added " + number + "row");
+            if (key != '4')
+            {
+                var number = command.ExecuteNonQuery();
+                Console.WriteLine("Added a row");
+            }
+
             Console.ReadKey();
         }
         static string InsertCase3(string expression, SqlConnection connection)
